@@ -1,4 +1,94 @@
 <?php
+
+session_start();
+
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+require_once '../DATABASE/Database.php';
+date_default_timezone_set("Asia/Manila");
+
+class User
+{
+
+    private $db;
+
+    public function __construct(Database $db)
+    {
+        $this->db = $db->getConnection();
+    }
+
+    public function login($email, $password, $rememberMe)
+    {
+
+        $stmt = $this->db->prepare("SELECT * FROM users WHERE email = ? AND password = ?");
+        $stmt->bind_param("ss", $email, $password);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        var_dump($result->num_rows);
+
+        if ($result->num_rows > 0) {
+            $user = $result->fetch_assoc();
+
+            var_dump("Session variables being set");
+
+            $_SESSION['email'] = $email;
+            $_SESSION['user_id'] = $user['user_id'];
+            $_SESSION['logged_in'] = true;
+
+            var_dump($_SESSION);
+
+            if ($rememberMe) {
+                setcookie("email", $email, time() + (86400 * 30), "/");
+                setcookie("password", $password, time() + (86400 * 30), "/");
+                setcookie("rememberMe", $rememberMe, time() + (86400 * 30), "/");
+            } else {
+                setcookie("email", $email, time() + (86400 * 30), "/");
+                setcookie("password", $password, time() + (86400 * 30), "/");
+                setcookie("rememberMe", "", time() + (86400 * 30), "/");
+            }
+            return "success";
+        } else {
+//            $stmt->bind_param("s", $email);
+//            $stmt->execute();
+
+            return "Invalid username or password!";
+        }
+    }
+}
+
+$error = "";
+$success = "";
+$email = "";
+$password = "";
+$rememberMe = false;
+
+if (isset($_COOKIE["rememberMe"]) && $_COOKIE["rememberMe"]) {
+    if (isset($_COOKIE["email"]) && isset($_COOKIE["password"])) {
+        $email = $_COOKIE["email"];
+        $password = $_COOKIE["password"];
+        $rememberMe = true;
+    }
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $db = new Database();
+    $user = new User($db);
+
+    $email = $_POST["email"];
+    $password = $_POST["password"];
+    $rememberMe = isset($_POST["rememberMe"]);
+
+    $result = $user->login($email, $password, $rememberMe);
+    if ($result === "success") {
+        $success = "Signed in Successfully!";
+        header("Location: ../HOME/dashboard.php");
+        exit();
+    } else {
+        $error = $result;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -43,40 +133,33 @@
                                 <div class="text-center">
                                     <h1 class="h4 text-gray-900 mb-4">Welcome Back!</h1>
                                 </div>
-                                <form class="user">
+                                <form class="user" action="login.php" method="POST">
                                     <div class="form-group">
                                         <input type="email" class="form-control form-control-user"
-                                               id="exampleInputEmail" aria-describedby="emailHelp"
-                                               placeholder="Enter Email Address...">
+                                               id="exampleInputEmail" name="email" aria-describedby="emailHelp"
+                                               placeholder="Enter Email Address..."
+                                               value="<?= $rememberMe ? htmlspecialchars($email) : '' ?>" required>
                                     </div>
                                     <div class="form-group">
                                         <input type="password" class="form-control form-control-user"
-                                               id="exampleInputPassword" placeholder="Password">
+                                               id="exampleInputPassword" name="password" placeholder="Password"
+                                               value="<?= $rememberMe ? htmlspecialchars($password) : '' ?>" required>
                                     </div>
                                     <div class="form-group">
                                         <div class="custom-control custom-checkbox small">
-                                            <input type="checkbox" class="custom-control-input" id="customCheck">
-                                            <label class="custom-control-label" for="customCheck">Remember
-                                                Me</label>
+                                            <input type="checkbox" class="custom-control-input"
+                                                   id="customCheck" name="rememberMe"
+                                                    <?= $rememberMe ? 'checked' : '' ?>>
+                                            <label class="custom-control-label" for="customCheck">Remember Me</label>
                                         </div>
                                     </div>
-                                    <a href="../../FRONTEND/ASSETS/index.html" class="btn btn-primary btn-user btn-block">
+                                    <button type="submit" class="btn btn-primary btn-user btn-block">
                                         Login
-                                    </a>
-                                    <hr>
-                                    <a href="../../FRONTEND/ASSETS/index.html" class="btn btn-google btn-user btn-block">
-                                        <i class="fab fa-google fa-fw"></i> Login with Google
-                                    </a>
-                                    <a href="../../FRONTEND/ASSETS/index.html" class="btn btn-facebook btn-user btn-block">
-                                        <i class="fab fa-facebook-f fa-fw"></i> Login with Facebook
-                                    </a>
+                                    </button>
                                 </form>
                                 <hr>
                                 <div class="text-center">
-                                    <a class="small" href="../../FRONTEND/ASSETS/forgot-password.html">Forgot Password?</a>
-                                </div>
-                                <div class="text-center">
-                                    <a class="small" href="../../FRONTEND/ASSETS/register.html">Create an Account!</a>
+                                    <a class="small" href="register.php">Create an Account!</a>
                                 </div>
                             </div>
                         </div>

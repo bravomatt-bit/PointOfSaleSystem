@@ -1,7 +1,11 @@
 <?php
 session_start();
-if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-    header("location: login.php");
+
+var_dump($_SESSION);
+
+if (!isset($_SESSION["logged_in"]) || $_SESSION["logged_in"] !== true) {
+    header("location: ../AUTHENTICATION/login.php");
+    exit();
 }
 ?>
 <!DOCTYPE html>

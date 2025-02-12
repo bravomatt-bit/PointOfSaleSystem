@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 05, 2025 at 09:42 AM
+-- Generation Time: Feb 11, 2025 at 02:57 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -123,6 +123,20 @@ CREATE TABLE `transactions` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `users`
+--
+
+CREATE TABLE `users` (
+  `user_id` int(10) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `first_name` varchar(255) NOT NULL,
+  `last_name` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `warehouses`
 --
 
@@ -185,6 +199,12 @@ ALTER TABLE `transactions`
   ADD KEY `product_id` (`product_id`),
   ADD KEY `warehouse_id` (`warehouse_id`),
   ADD KEY `purchase_id` (`purchase_id`);
+
+--
+-- Indexes for table `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`user_id`);
 
 --
 -- Indexes for table `warehouses`
